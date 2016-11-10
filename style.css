@@ -1,0 +1,48 @@
+/*table, tr, td {
+  padding: 3px;
+}*/
+
+.redCell {
+  width: 65px;
+  height: 65px;
+  background-color: #FF0000;
+  /*background-image: url("./img/red.png");*/
+}
+
+.greenCell {
+  width: 65px;
+  height: 65px;
+  background-color: #00FF00;
+  /*background-image: url("./img/green.png");*/
+}
+
+.blueCell {
+  width: 65px;
+  background-color: #0000FF;
+  height: 65px;
+  /*background-image: url("./img/blue.png");*/
+}
+
+.yellowCell {
+  width: 65px;
+  height: 65px;
+  background-color: #FFFF00;
+  /*background-image: url("./img/blue.png");*/
+}
+
+.lightblueCell {
+  width: 65px;
+  height: 65px;
+  background-color: #00FFFF;
+  /*background-image: url("./img/blue.png");*/
+}
+
+.whiteCell {
+  width: 65px;
+  height: 65px;
+  background-color: #FFFFFF;
+}
+
+.selectedCell {
+  border: 3px solid black;
+}
