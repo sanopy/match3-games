@@ -7,6 +7,7 @@ class Puzzle {
   private board = [];
   private classes = ["redCell", "greenCell", "blueCell", "yellowCell", "lightblueCell", "whiteCell"];
   private selectedCell: [number, number] = [null, null];
+  private score = 0;
 
   constructor() {
     // 盤面生成
@@ -31,23 +32,29 @@ class Puzzle {
   }
 
   public selectCell(idx: [number, number]): void {
+    // 選択状態のセルに隣接するセルを選択した
     if (this.isAdjacent(this.selectedCell, idx)) {
       this.swapCells(this.selectedCell, idx);
 
-      // セレクト状態解除
+      // 選択状態解除
       $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
       this.selectedCell = [null, null];
 
-      while (this.deleteCells())
-        this.dropCells();
-
-      console.log("-------------------------");
-      for (let i = 0; i < this.H; i++)
-        console.log(this.board[i]);
+      // while (this.deleteCells())
+        // this.dropCells();
+      let self = this;
+      let loop = function() {
+        if (self.deleteCells()) {
+          setTimeout(self.dropCells(), 500);
+          setTimeout(loop, 500);
+        }
+      };
+      setTimeout(loop, 500);
 
       return;
     }
 
+    // 選択状態のセルがない or 選択状態のセルと隣接しないセルを選択した
     let id = this.calcIndex(idx);
     $("#cell" + id).addClass("selectedCell");
     if (this.selectedCell[0] !== null)
@@ -87,65 +94,85 @@ class Puzzle {
     return false;
   }
 
-  private deleteCells(): boolean {
-    let res = false;
+  private findDeleteCells(board: Array<Array<number>>): void {
     for (let i = 0; i < this.H; i++) {
       for (let j = 0; j < this.W; j++) {
-        if (this.board[i][j] !== this.COLOR) {
-          let cnt = 0;
-          for (let k = i; k < this.H && this.board[i][j] === this.board[k][j] && cnt < 3; k++)
-            cnt++;
-          if (cnt >= 3) {
-            for (let k = i + 1; k < this.H && this.board[i][j] === this.board[k][j]; k++) {
-              let idx = this.calcIndex([j, k]);
-              $("#cell" + idx).switchClass(this.classes[ this.board[k][j] ], this.classes[this.COLOR], 500);
-              this.board[k][j] = this.COLOR;
-            }
-            let idx = this.calcIndex([j, i]);
-            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 500);
-            this.board[i][j] = this.COLOR;
-            res = true;
+        let cnt = 0;
+        for (let k = i; k < this.H && this.board[i][j] === this.board[k][j] && cnt < 3; k++)
+          cnt++;
+        if (cnt >= 3) {
+          for (let k = i; k < this.H && this.board[i][j] === this.board[k][j]; k++) {
+            board[k][j] = this.COLOR;
           }
-          cnt = 0;
-          for (let k = j; k < this.W && this.board[i][j] === this.board[i][k] && cnt < 3; k++)
-            cnt++;
-          if (cnt >= 3) {
-            for (let k = j + 1; k < this.W && this.board[i][j] === this.board[i][k]; k++) {
-              let idx = this.calcIndex([k, i]);
-              $("#cell" + idx).switchClass(this.classes[ this.board[i][k] ], this.classes[this.COLOR], 500);
-              this.board[i][k] = this.COLOR;
-            }
-            let idx = this.calcIndex([j, i]);
-            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 500);
-            this.board[i][j] = this.COLOR;
-            res = true;
+        }
+        cnt = 0;
+        for (let k = j; k < this.W && this.board[i][j] === this.board[i][k] && cnt < 3; k++)
+          cnt++;
+        if (cnt >= 3) {
+          for (let k = j; k < this.W && this.board[i][j] === this.board[i][k]; k++) {
+            board[i][k] = this.COLOR;
           }
         }
       }
     }
+
+    return;
+  }
+
+  private deleteCells(): boolean {
+    let copiedBoard = [];
+
+    for (let i = 0; i < this.H; i++)
+      copiedBoard[i] = this.board[i].concat();
+
+    this.findDeleteCells(copiedBoard);
+
+    let res = false;
+    for (let i = 0; i < this.H; i++) {
+      for (let j = 0; j < this.W; j++) {
+        if (this.board[i][j] !== copiedBoard[i][j]) {
+          let idx = this.calcIndex([j, i]);
+          $("#cell" + idx).switchClass(this.classes[this.board[i][j]], this.classes[this.COLOR], 500);
+          this.board[i][j] = this.COLOR;
+          this.score += 10;
+          res = true;
+        }
+      }
+    }
+
+    $("input").attr({
+      value: this.score
+    });
+
     return res;
   }
 
   private dropCells(): void {
     let dropped = true;
-    while (dropped) {
-      dropped = false;
-      for (let i = 0; i < this.W; i++) {
-        if (this.board[0][i] === this.COLOR) {
-          let idx = this.calcIndex([i, 0]);
-          this.board[0][i] = Math.floor(Math.random() * this.COLOR);
-          $("#cell" + idx).switchClass(this.classes[this.COLOR], this.classes[ this.board[0][i] ], 500);
-        }
-      }
-      for (let i = this.H - 1; i > 0; i--) {
-        for (let j = 0; j < this.W; j++) {
-          if (this.board[i][j] === this.COLOR && this.board[i - 1][j] !== this.COLOR) {
-            dropped = true;
-            this.swapCells([j, i], [j, i - 1]);
+    let self = this;
+    let loop = function() {
+      if (dropped) {
+        dropped = false;
+        for (let i = 0; i < self.W; i++) {
+          if (self.board[0][i] === self.COLOR) {
+            let idx = self.calcIndex([i, 0]);
+            self.board[0][i] = Math.floor(Math.random() * self.COLOR);
+            $("#cell" + idx).switchClass(self.classes[self.COLOR], self.classes[ self.board[0][i] ], 0);
           }
         }
+        for (let i = self.H - 1; i > 0; i--) {
+          for (let j = 0; j < self.W; j++) {
+            if (self.board[i][j] === self.COLOR && self.board[i - 1][j] !== self.COLOR) {
+              dropped = true;
+              self.swapCells([j, i], [j, i - 1]);
+            }
+          }
+        }
+        setTimeout(loop, 500);
       }
-    }
+    };
+    setTimeout(loop, 500);
+
     return;
   }
 }

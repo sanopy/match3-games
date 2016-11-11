@@ -7,6 +7,7 @@ var Puzzle = (function () {
         this.board = [];
         this.classes = ["redCell", "greenCell", "blueCell", "yellowCell", "lightblueCell", "whiteCell"];
         this.selectedCell = [null, null];
+        this.score = 0;
         // 盤面生成
         for (var i = 0; i < this.H; i++)
             this.board[i] = [];
@@ -26,18 +27,25 @@ var Puzzle = (function () {
         $("#main").html(html);
     }
     Puzzle.prototype.selectCell = function (idx) {
+        // 選択状態のセルに隣接するセルを選択した
         if (this.isAdjacent(this.selectedCell, idx)) {
             this.swapCells(this.selectedCell, idx);
-            // セレクト状態解除
+            // 選択状態解除
             $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
             this.selectedCell = [null, null];
-            while (this.deleteCells())
-                this.dropCells();
-            console.log("-------------------------");
-            for (var i = 0; i < this.H; i++)
-                console.log(this.board[i]);
+            // while (this.deleteCells())
+            // this.dropCells();
+            var self_1 = this;
+            var loop_1 = function () {
+                if (self_1.deleteCells()) {
+                    setTimeout(self_1.dropCells(), 500);
+                    setTimeout(loop_1, 500);
+                }
+            };
+            setTimeout(loop_1, 500);
             return;
         }
+        // 選択状態のセルがない or 選択状態のセルと隣接しないセルを選択した
         var id = this.calcIndex(idx);
         $("#cell" + id).addClass("selectedCell");
         if (this.selectedCell[0] !== null)
@@ -72,64 +80,76 @@ var Puzzle = (function () {
             return true;
         return false;
     };
-    Puzzle.prototype.deleteCells = function () {
-        var res = false;
+    Puzzle.prototype.findDeleteCells = function (board) {
         for (var i = 0; i < this.H; i++) {
             for (var j = 0; j < this.W; j++) {
-                if (this.board[i][j] !== this.COLOR) {
-                    var cnt = 0;
-                    for (var k = i; k < this.H && this.board[i][j] === this.board[k][j] && cnt < 3; k++)
-                        cnt++;
-                    if (cnt >= 3) {
-                        for (var k = i + 1; k < this.H && this.board[i][j] === this.board[k][j]; k++) {
-                            var idx_1 = this.calcIndex([j, k]);
-                            $("#cell" + idx_1).switchClass(this.classes[this.board[k][j]], this.classes[this.COLOR], 500);
-                            this.board[k][j] = this.COLOR;
-                        }
-                        var idx = this.calcIndex([j, i]);
-                        $("#cell" + idx).switchClass(this.classes[this.board[i][j]], this.classes[this.COLOR], 500);
-                        this.board[i][j] = this.COLOR;
-                        res = true;
+                var cnt = 0;
+                for (var k = i; k < this.H && this.board[i][j] === this.board[k][j] && cnt < 3; k++)
+                    cnt++;
+                if (cnt >= 3) {
+                    for (var k = i; k < this.H && this.board[i][j] === this.board[k][j]; k++) {
+                        board[k][j] = this.COLOR;
                     }
-                    cnt = 0;
-                    for (var k = j; k < this.W && this.board[i][j] === this.board[i][k] && cnt < 3; k++)
-                        cnt++;
-                    if (cnt >= 3) {
-                        for (var k = j + 1; k < this.W && this.board[i][j] === this.board[i][k]; k++) {
-                            var idx_2 = this.calcIndex([k, i]);
-                            $("#cell" + idx_2).switchClass(this.classes[this.board[i][k]], this.classes[this.COLOR], 500);
-                            this.board[i][k] = this.COLOR;
-                        }
-                        var idx = this.calcIndex([j, i]);
-                        $("#cell" + idx).switchClass(this.classes[this.board[i][j]], this.classes[this.COLOR], 500);
-                        this.board[i][j] = this.COLOR;
-                        res = true;
+                }
+                cnt = 0;
+                for (var k = j; k < this.W && this.board[i][j] === this.board[i][k] && cnt < 3; k++)
+                    cnt++;
+                if (cnt >= 3) {
+                    for (var k = j; k < this.W && this.board[i][j] === this.board[i][k]; k++) {
+                        board[i][k] = this.COLOR;
                     }
                 }
             }
         }
+        return;
+    };
+    Puzzle.prototype.deleteCells = function () {
+        var copiedBoard = [];
+        for (var i = 0; i < this.H; i++)
+            copiedBoard[i] = this.board[i].concat();
+        this.findDeleteCells(copiedBoard);
+        var res = false;
+        for (var i = 0; i < this.H; i++) {
+            for (var j = 0; j < this.W; j++) {
+                if (this.board[i][j] !== copiedBoard[i][j]) {
+                    var idx = this.calcIndex([j, i]);
+                    $("#cell" + idx).switchClass(this.classes[this.board[i][j]], this.classes[this.COLOR], 500);
+                    this.board[i][j] = this.COLOR;
+                    this.score += 10;
+                    res = true;
+                }
+            }
+        }
+        $("input").attr({
+            value: this.score
+        });
         return res;
     };
     Puzzle.prototype.dropCells = function () {
         var dropped = true;
-        while (dropped) {
-            dropped = false;
-            for (var i = 0; i < this.W; i++) {
-                if (this.board[0][i] === this.COLOR) {
-                    var idx = this.calcIndex([i, 0]);
-                    this.board[0][i] = Math.floor(Math.random() * this.COLOR);
-                    $("#cell" + idx).switchClass(this.classes[this.COLOR], this.classes[this.board[0][i]], 500);
-                }
-            }
-            for (var i = this.H - 1; i > 0; i--) {
-                for (var j = 0; j < this.W; j++) {
-                    if (this.board[i][j] === this.COLOR && this.board[i - 1][j] !== this.COLOR) {
-                        dropped = true;
-                        this.swapCells([j, i], [j, i - 1]);
+        var self = this;
+        var loop = function () {
+            if (dropped) {
+                dropped = false;
+                for (var i = 0; i < self.W; i++) {
+                    if (self.board[0][i] === self.COLOR) {
+                        var idx = self.calcIndex([i, 0]);
+                        self.board[0][i] = Math.floor(Math.random() * self.COLOR);
+                        $("#cell" + idx).switchClass(self.classes[self.COLOR], self.classes[self.board[0][i]], 0);
                     }
                 }
+                for (var i = self.H - 1; i > 0; i--) {
+                    for (var j = 0; j < self.W; j++) {
+                        if (self.board[i][j] === self.COLOR && self.board[i - 1][j] !== self.COLOR) {
+                            dropped = true;
+                            self.swapCells([j, i], [j, i - 1]);
+                        }
+                    }
+                }
+                setTimeout(loop, 500);
             }
-        }
+        };
+        setTimeout(loop, 500);
         return;
     };
     return Puzzle;

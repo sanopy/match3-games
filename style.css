@@ -2,12 +2,30 @@
   padding: 3px;
 }*/
 
+#title {
+  margin: auto;
+  width: 900px;
+  height: 100px;
+}
+
 #game {
   margin: auto;
   width: 900px;
   height: 875px;
   background-repeat: no-repeat;
   background-image: url("./img/background.png");
+}
+
+p {
+  margin-left: 300px;
+}
+
+table {
+  margin: auto;
+}
+
+td {
+  margin: 3px;
 }
 
 .redCell {
