@@ -41,6 +41,10 @@ class Puzzle {
       while (this.deleteCells())
         this.dropCells();
 
+      console.log("-------------------------");
+      for (let i = 0; i < this.H; i++)
+        console.log(this.board[i]);
+
       return;
     }
 
@@ -55,8 +59,10 @@ class Puzzle {
   private swapCells(idx1: [number, number], idx2: [number, number]): void {
     let p = this.calcIndex(idx1), q = this.calcIndex(idx2);
 
-    $("#cell" + p).switchClass(this.classes[ this.board[idx1[1]][idx1[0]] ], this.classes[ this.board[idx2[1]][idx2[0]] ], 500);
-    $("#cell" + q).switchClass(this.classes[ this.board[idx2[1]][idx2[0]] ], this.classes[ this.board[idx1[1]][idx1[0]] ], 500);
+    $("#cell" + p).switchClass(this.classes[ this.board[idx1[1]][idx1[0]] ], this.classes[ this.board[idx2[1]][idx2[0]] ],
+      this.board[idx1[1]][idx1[0]] === this.COLOR ? 0 : 500);
+    $("#cell" + q).switchClass(this.classes[ this.board[idx2[1]][idx2[0]] ], this.classes[ this.board[idx1[1]][idx1[0]] ],
+      this.board[idx2[1]][idx2[0]] === this.COLOR ? 0 : 500);
 
     let tmp = this.board[idx1[1]][idx1[0]];
     this.board[idx1[1]][idx1[0]] = this.board[idx2[1]][idx2[0]];
@@ -92,11 +98,11 @@ class Puzzle {
           if (cnt >= 3) {
             for (let k = i + 1; k < this.H && this.board[i][j] === this.board[k][j]; k++) {
               let idx = this.calcIndex([j, k]);
-              $("#cell" + idx).switchClass(this.classes[ this.board[k][j] ], this.classes[this.COLOR], 1000);
+              $("#cell" + idx).switchClass(this.classes[ this.board[k][j] ], this.classes[this.COLOR], 500);
               this.board[k][j] = this.COLOR;
             }
             let idx = this.calcIndex([j, i]);
-            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 1000);
+            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 500);
             this.board[i][j] = this.COLOR;
             res = true;
           }
@@ -106,11 +112,11 @@ class Puzzle {
           if (cnt >= 3) {
             for (let k = j + 1; k < this.W && this.board[i][j] === this.board[i][k]; k++) {
               let idx = this.calcIndex([k, i]);
-              $("#cell" + idx).switchClass(this.classes[ this.board[i][k] ], this.classes[this.COLOR], 1000);
+              $("#cell" + idx).switchClass(this.classes[ this.board[i][k] ], this.classes[this.COLOR], 500);
               this.board[i][k] = this.COLOR;
             }
             let idx = this.calcIndex([j, i]);
-            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 1000);
+            $("#cell" + idx).switchClass(this.classes[ this.board[i][j] ], this.classes[this.COLOR], 500);
             this.board[i][j] = this.COLOR;
             res = true;
           }
