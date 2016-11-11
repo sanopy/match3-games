@@ -8,6 +8,7 @@ var Puzzle = (function () {
         this.classes = ["redCell", "greenCell", "blueCell", "yellowCell", "lightblueCell", "whiteCell"];
         this.selectedCell = [null, null];
         this.score = 0;
+        this.dropFlag = false;
         // 盤面生成
         for (var i = 0; i < this.H; i++)
             this.board[i] = [];
@@ -38,8 +39,15 @@ var Puzzle = (function () {
             var self_1 = this;
             var loop_1 = function () {
                 if (self_1.deleteCells()) {
+                    self_1.dropFlag = true;
                     setTimeout(self_1.dropCells(), 500);
-                    setTimeout(loop_1, 500);
+                    (function waitDropCells() {
+                        if (self_1.dropFlag) {
+                            setTimeout(waitDropCells, 100);
+                            return;
+                        }
+                        setTimeout(loop_1, 100);
+                    })();
                 }
             };
             setTimeout(loop_1, 500);
@@ -147,7 +155,9 @@ var Puzzle = (function () {
                     }
                 }
                 setTimeout(loop, 500);
+                return;
             }
+            self.dropFlag = false;
         };
         setTimeout(loop, 500);
         return;

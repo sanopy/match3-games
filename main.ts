@@ -8,6 +8,7 @@ class Puzzle {
   private classes = ["redCell", "greenCell", "blueCell", "yellowCell", "lightblueCell", "whiteCell"];
   private selectedCell: [number, number] = [null, null];
   private score = 0;
+  private dropFlag = false;
 
   constructor() {
     // 盤面生成
@@ -45,8 +46,16 @@ class Puzzle {
       let self = this;
       let loop = function() {
         if (self.deleteCells()) {
+          self.dropFlag = true;
           setTimeout(self.dropCells(), 500);
-          setTimeout(loop, 500);
+          (function waitDropCells() {
+            if (self.dropFlag) {
+              setTimeout(waitDropCells, 100);
+              return;
+            }
+            setTimeout(loop, 100);
+          })();
+          // setTimeout(loop, 500);
         }
       };
       setTimeout(loop, 500);
@@ -169,7 +178,9 @@ class Puzzle {
           }
         }
         setTimeout(loop, 500);
+        return;
       }
+      self.dropFlag = false;
     };
     setTimeout(loop, 500);
 
