@@ -30,6 +30,13 @@ var Puzzle = (function () {
     Puzzle.prototype.selectCell = function (idx) {
         // 選択状態のセルに隣接するセルを選択した
         if (this.isAdjacent(this.selectedCell, idx)) {
+            // 同色ブロックならばその後の処理を行わない
+            if (this.board[idx[1]][idx[0]] === this.board[this.selectedCell[1]][this.selectedCell[0]]) {
+                // 選択状態解除
+                $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
+                this.selectedCell = [null, null];
+                return;
+            }
             this.swapCells(this.selectedCell, idx);
             // 選択状態解除
             $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
