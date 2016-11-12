@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>match3 games</title>
+    <title>3つそろえたらきえるゲーム</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
   </head>
@@ -12,10 +12,12 @@
     </div>
     <div id="game">
       <form>
-        <p>Score : <input type=text value="0" disabled="disabled"></p>
+        <p>Score : <input id="score" type=text value="0" disabled="disabled"> Timer : <input id="timer" type=text value="0" disabled="disabled"></p>
       </form>
       <table id="main">
       </table>
+    </div>
+    <div id="dialog" title="おつかれさま！！！">
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>

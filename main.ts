@@ -47,7 +47,7 @@ class Puzzle {
       let loop = function() {
         if (self.deleteCells()) {
           self.dropFlag = true;
-          setTimeout(self.dropCells(), 500);
+          self.dropCells();
           (function waitDropCells() {
             if (self.dropFlag) {
               setTimeout(waitDropCells, 100);
@@ -70,6 +70,25 @@ class Puzzle {
       $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
     this.selectedCell = idx;
     return;
+  }
+
+  public finishGame(): void {
+    // alert("Your Score is " + this.score);
+    $("#dialog").html("あなたのスコアは" + this.score + "ポイントでした<br><a href=\"https://twitter.com/intent/tweet?button_hashtag=3%E3%81%A4%E3%81%9D%E3%82%8D%E3%81%88%E3%81%9F%E3%82%89%E3%81%8D%E3%81%88%E3%82%8B%E3%82%B2%E3%83%BC%E3%83%A0&text=" + "私はこのゲームで" + this.score + "ポイント獲得しました" + "\" class=\"twitter-hashtag-button\" data-url=\"https://uoo38.github.io/match3-games/\">Tweet #3%E3%81%A4%E3%81%9D%E3%82%8D%E3%81%88%E3%81%9F%E3%82%89%E3%81%8D%E3%81%88%E3%82%8B%E3%82%B2%E3%83%BC%E3%83%A0</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>");
+    $("#dialog").dialog({
+      modal: true,
+      closeOnEscape: false,
+      width: 400,
+      open: function(event, ui) {
+        $(".ui-dialog-titlebar-close").hide();
+      },
+      buttons: {
+        OK: function() {
+          location.reload();
+          $(this).dialog("close");
+        }
+      }
+    });
   }
 
   private swapCells(idx1: [number, number], idx2: [number, number]): void {
@@ -149,7 +168,7 @@ class Puzzle {
       }
     }
 
-    $("input").attr({
+    $("#score").attr({
       value: this.score
     });
 
@@ -189,7 +208,27 @@ class Puzzle {
 }
 
 let puzzle: Puzzle = new Puzzle();
+let isFirstClicked = false;
+let timer: Date;
 $("td").click(function() {
+  if (!isFirstClicked) {
+    isFirstClicked = true;
+    timer = new Date(new Date().getTime() + 40000);
+    let loop = function() {
+      let t = new Date();
+      if (timer > t) {
+        let diff = ((timer.getTime() - t.getTime()) / 1000.0).toFixed(3);
+        $("#timer").attr({
+          value: diff
+        });
+        setTimeout(loop, 200);
+      } else {
+        puzzle.finishGame();
+        return;
+      }
+    };
+    setTimeout(loop, 200);
+  }
   let id: string = $(this).attr("id");
   let idx: number = +id.substr(4);
   let x = idx % puzzle.W, y = Math.floor(idx / puzzle.W);

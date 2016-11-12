@@ -40,7 +40,7 @@ var Puzzle = (function () {
             var loop_1 = function () {
                 if (self_1.deleteCells()) {
                     self_1.dropFlag = true;
-                    setTimeout(self_1.dropCells(), 500);
+                    self_1.dropCells();
                     (function waitDropCells() {
                         if (self_1.dropFlag) {
                             setTimeout(waitDropCells, 100);
@@ -60,6 +60,24 @@ var Puzzle = (function () {
             $("#cell" + this.calcIndex(this.selectedCell)).removeClass("selectedCell");
         this.selectedCell = idx;
         return;
+    };
+    Puzzle.prototype.finishGame = function () {
+        // alert("Your Score is " + this.score);
+        $("#dialog").html("あなたのスコアは" + this.score + "ポイントでした<br><a href=\"https://twitter.com/intent/tweet?button_hashtag=3%E3%81%A4%E3%81%9D%E3%82%8D%E3%81%88%E3%81%9F%E3%82%89%E3%81%8D%E3%81%88%E3%82%8B%E3%82%B2%E3%83%BC%E3%83%A0&text=" + "私はこのゲームで" + this.score + "ポイント獲得しました" + "\" class=\"twitter-hashtag-button\" data-url=\"https://uoo38.github.io/match3-games/\">Tweet #3%E3%81%A4%E3%81%9D%E3%82%8D%E3%81%88%E3%81%9F%E3%82%89%E3%81%8D%E3%81%88%E3%82%8B%E3%82%B2%E3%83%BC%E3%83%A0</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>");
+        $("#dialog").dialog({
+            modal: true,
+            closeOnEscape: false,
+            width: 400,
+            open: function (event, ui) {
+                $(".ui-dialog-titlebar-close").hide();
+            },
+            buttons: {
+                OK: function () {
+                    location.reload();
+                    $(this).dialog("close");
+                }
+            }
+        });
     };
     Puzzle.prototype.swapCells = function (idx1, idx2) {
         var p = this.calcIndex(idx1), q = this.calcIndex(idx2);
@@ -128,7 +146,7 @@ var Puzzle = (function () {
                 }
             }
         }
-        $("input").attr({
+        $("#score").attr({
             value: this.score
         });
         return res;
@@ -165,7 +183,28 @@ var Puzzle = (function () {
     return Puzzle;
 }());
 var puzzle = new Puzzle();
+var isFirstClicked = false;
+var timer;
 $("td").click(function () {
+    if (!isFirstClicked) {
+        isFirstClicked = true;
+        timer = new Date(new Date().getTime() + 10000);
+        var loop_2 = function () {
+            var t = new Date();
+            if (timer > t) {
+                var diff = ((timer.getTime() - t.getTime()) / 1000.0).toFixed(3);
+                $("#timer").attr({
+                    value: diff
+                });
+                setTimeout(loop_2, 200);
+            }
+            else {
+                puzzle.finishGame();
+                return;
+            }
+        };
+        setTimeout(loop_2, 200);
+    }
     var id = $(this).attr("id");
     var idx = +id.substr(4);
     var x = idx % puzzle.W, y = Math.floor(idx / puzzle.W);
