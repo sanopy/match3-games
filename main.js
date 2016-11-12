@@ -188,7 +188,7 @@ var timer;
 $("td").click(function () {
     if (!isFirstClicked) {
         isFirstClicked = true;
-        timer = new Date(new Date().getTime() + 10000);
+        timer = new Date(new Date().getTime() + 40000);
         var loop_2 = function () {
             var t = new Date();
             if (timer > t) {
